@@ -1,0 +1,12 @@
+# Environments
+exorisk_env/
+.venv/
+__pycache__/
+
+# Data 
+data/raw/
+data/interim/
+data/processed/
+
+# Jupyter
+.ipynb_checkpoints/
