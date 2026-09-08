@@ -7,7 +7,9 @@ Output: Raw CSV secured in data/raw/
 
 import os
 import sys
+import getpass
 import logging
+import subprocess
 from pathlib import Path
 
 # Configure Executive Telemetry Logging
@@ -32,21 +34,48 @@ def main() -> None:
     dataset_slug = "wordsforthewise/lending-club"
     expected_file = raw_dir / "accepted_2007_to_2018Q4.csv.gz"
     
-    # 1. Idempotent Existence Check
+    # ---------------------------------------------------------
+    # 1. Path Routing & Idempotent Gatekeeper
+    # ---------------------------------------------------------
     if expected_file.exists():
         logger.info(f"Target data already exists at: {expected_file}")
         logger.info("Bypassing Kaggle extraction to conserve bandwidth and compute.")
         sys.exit(0)
         
     logger.info(f"Data not found. Initiating secure Kaggle API handshake for '{dataset_slug}'...")
-    
-# 2. Native API Extraction via Subprocess
-    try:
-        import subprocess
+# ---------------------------------------------------------
+    # 2. Credential Management 
+    # ---------------------------------------------------------
+    kaggle_user = os.getenv("KAGGLE_USERNAME")
+    kaggle_key = os.getenv("KAGGLE_KEY")
+
+    if not kaggle_user or not kaggle_key:
+        logger.warning("Kaggle credentials not found in environment variables.")
+        print("\n--- Kaggle API Credentials Required ---")
+        print("You can get these by generating a 'New API Token' in your Kaggle Account Settings.")
         
+        # Enterprise Standard: Masking input via getpass
+        raw_user = getpass.getpass("Please paste your KAGGLE_USERNAME and press Enter: ")
+        raw_key = getpass.getpass("Please paste your KAGGLE_KEY and press Enter: ")
+        
+        # Aggressive sanitization to prevent hidden character bugs from pasting
+        clean_user = raw_user.strip().replace('"', '').replace("'", "")
+        clean_key = raw_key.strip().replace('"', '').replace("'", "")
+        
+        if not clean_user or not clean_key:
+            logger.error("Missing username or key. Pipeline execution aborted.")
+            sys.exit(1)
+            
+        os.environ["KAGGLE_USERNAME"] = clean_user
+        os.environ["KAGGLE_KEY"] = clean_key
+        print("Kaggle credentials accepted. Resuming extraction...\n")
+
+    # ---------------------------------------------------------
+    # 3. Native API Extraction via Subprocess
+    # ---------------------------------------------------------
+    try:
         logger.info("Initiating Kaggle CLI extraction via Python subprocess...")
         
-        # Execute the robust CLI command directly from within Python
         subprocess.run([
             "kaggle", "datasets", "download", 
             "-d", dataset_slug, 

@@ -12,3 +12,6 @@ data/processed/
 .ipynb_checkpoints/
 
 project_state.md
+
+path_scanner_v1.py
+notebooks/
