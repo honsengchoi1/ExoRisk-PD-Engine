@@ -1,7 +1,7 @@
 # project_state.md
 **Last Updated:** 2026-09-08
-**Project:** ExoRisk Codebase: Phase 2 Micro Ingestion & NLP Regex
-**Phase:** 2.1 - Data Procurement & Jupyter Scratchpad Initialization
+**Project:** ExoRisk Codebase: Phase 3 Feature Merge Complete
+**Phase:** 4.0 - Machine Learning Engine (XGBoost) Initialization
 
 ## ⚠️ Permanent Executive Directives
 1. **Verification-First Workflow:** Always brainstorm, discuss, teach, learn, confirm, and proceed.
@@ -13,13 +13,13 @@
 
 ## Architectural Standards (For README)
 * **Strict Python Typing:** Enforced via Pylance to create executable, built-in documentation. This guarantees data type integrity, eliminating runtime friction during MLOps deployment hand-offs.
-* **Parquet Serialization:** Converted raw, massive CSV payloads into columnar, Snappy-compressed Parquet matrices, achieving a 90%+ reduction in disk I/O and memory overhead during XGBoost training.
+* **Idempotent Data Engineering:** Constructed highly resilient ETL pipelines that bypass redundant processing, optimizing disk I/O and RAM allocation during massive dataset transformation.
 
 ## End-to-End Pipeline Roadmap
-1.  **[COMPLETED] Macro Ingestion:** Vectorized API extraction of FRED employment and yield data. Computed 1M/3M/6M rolling momentum features. Flattened into a multi-index Parquet panel.
-2.  **[CURRENT] Micro Ingestion:** Convert LendingClub CSV to Parquet; apply Regex Job-to-Sector mapping.
-3.  **Feature Assembly:** Left join micro data with the macro matrix based on (Lagged_Date, State, Sector).
-4.  **Engine Training:** Train XGBoost on the unified matrix.
+1.  **[COMPLETED] Macro Ingestion:** Vectorized API extraction of FRED data.
+2.  **[COMPLETED] Micro Ingestion:** Idempotent extraction of 1.26GB LendingClub dataset.
+3.  **[COMPLETED] Feature Assembly:** Vectorized Regex mapping of 2.2 million job titles into 14 macro sectors; generated merged, ML-ready payload.
+4.  **[CURRENT] Engine Training:** Train XGBoost on the unified matrix.
 5.  **Explainability & UI:** Generate SHAP values; wrap serialized model in an interactive Streamlit UI.
 
 ## Future Pipeline Expansions

@@ -8,6 +8,7 @@ Output: Snappy-compressed Parquet (Date, Sector).
 
 import os
 import sys
+import getpass
 import time
 import logging
 from pathlib import Path
@@ -52,12 +53,30 @@ def main() -> None:
     start_time = time.perf_counter()
     logger.info("Initiating Phase 1: Macro ETL Ingestion")
 
-    # 1. Credential & Path Management
-    api_key = os.environ.get('FRED_API_KEY')
-    if not api_key:
-        logger.error("FATAL: FRED_API_KEY environment variable not detected.")
-        sys.exit(1)
+   # 1. Credential & Path Management
+    api_key = os.getenv("FRED_API_KEY")
 
+    # If key is missing, gracefully ask the user for it
+    if not api_key:
+        logger.warning("FRED_API_KEY not found in environment variables.")
+        print("\n--- API Key Required ---")
+        print("You can get a free API key at: https://fred.stlouisfed.org/docs/api/api_key.html")
+        
+        # Using input() instead of getpass so we can visually verify the paste
+        raw_key = input("Please paste your FRED API Key here and press Enter: ")
+        
+        # Aggressively sanitize the input (remove spaces, quotes, and force lowercase)
+        clean_key = raw_key.strip().replace('"', '').replace("'", "").lower()
+        
+        # Validate the strict 32-character requirement
+        if len(clean_key) != 32 or not clean_key.isalnum():
+            logger.error(f"Invalid API Key format. Expected 32 alphanumeric characters, got {len(clean_key)}.")
+            sys.exit(1)
+            
+        os.environ["FRED_API_KEY"] = clean_key
+        print("API Key format verified. Resuming ingestion...\n")
+
+    # Path Management
     project_root = get_project_root()
     interim_dir = project_root / "data" / "interim"
     interim_dir.mkdir(parents=True, exist_ok=True)
