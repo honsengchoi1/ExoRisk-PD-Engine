@@ -63,13 +63,26 @@ def main() -> None:
     interim_dir.mkdir(parents=True, exist_ok=True)
 
     # 2. Target Series Specification
-    macro_series: Dict[str, str] = {'DGS2': 'Treasury_2Y_Yield'}
+    macro_series: Dict[str, str] = {
+        'DGS2': 'Treasury_2Y_Yield',
+        'PAYEMS': 'Total_Nonfarm' # Baseline for Unclassified/Other borrowers
+    }
+    
     sector_series: Dict[str, str] = {
-        'USINFO': 'Information',
-        'USEHS': 'Education_Health',
+        'USMINE': 'Mining_Logging',
         'USCONS': 'Construction',
+        'MANEMP': 'Manufacturing',
+        'USWTRADE': 'Wholesale_Trade',
+        'USTRADE': 'Retail_Trade',
+        'USTPU': 'Transport_Utilities',
+        'USINFO': 'Information',
         'USFIRE': 'Financial',
-        'USTRADE': 'Trade_Retail'
+        'USPBS': 'Professional_Business',
+        'CES6561000001': 'Education',
+        'CES6562000001': 'Healthcare',
+        'USLAH': 'Leisure_Hospitality',
+        'USSERV': 'Other_Services',
+        'USGOVT': 'Government'
     }
     all_targets = {**macro_series, **sector_series}
 
