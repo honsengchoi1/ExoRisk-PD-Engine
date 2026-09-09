@@ -5,7 +5,28 @@
 
 ## ⚠️ Permanent Executive Directives
 1. **Verification-First Workflow:** Always brainstorm, discuss, teach, learn, confirm, and proceed.
-2. **Zero Unauthorized Execution:** Do NOT generate code until explicitly requested by the user.
+2. **Zero Unauthorized Execution:** Do NOT generate code until explicitly requested by the user.# ExoRisk Predictive Underwriting Engine
+**Last Updated:** 2026-09-09
+**Phase:** 5.0 - Explainability & SHAP Integration Complete. Transitioning to UI.
+
+## Executive Overview
+ExoRisk is an end-to-end XGBoost predictive underwriting pipeline designed to dynamically price consumer credit risk. By normalizing asynchronous macroeconomic indicators (Treasury Yields, Sector Job Momentum) into a multi-index Parquet panel and merging it with micro-level borrower data, the machine learning engine calculates a highly calibrated Probability of Default (PD). This ensures the model understands the specific economic environment at the exact moment a loan is originated, bridging the gap between macro-regime shifts and idiosyncratic consumer risk.
+
+## Architectural Standards
+* **Strict Python Typing:** Enforced to create self-documenting code and guarantee data type integrity, eliminating runtime friction during MLOps deployment hand-offs.
+* **Idempotent Data Engineering:** Resilient ETL pipelines designed to bypass redundant processing, optimizing disk I/O and RAM allocation during the transformation of million-row datasets.
+* **Algorithmic Explainability:** Enterprise-grade SHAP (SHapley Additive exPlanations) integration to provide transparent, game-theoretic feature importance for regulatory compliance.
+
+## End-to-End Pipeline Roadmap
+1.  **[COMPLETED] Macro Ingestion:** Vectorized API extraction of Federal Reserve (FRED) economic data.
+2.  **[COMPLETED] Micro Ingestion:** Idempotent extraction of 1.2+ million borrower records.
+3.  **[COMPLETED] Feature Assembly:** Vectorized Regex mapping of 2.2 million raw job titles into 14 distinct macro-economic sectors.
+4.  **[COMPLETED] Engine Training:** XGBoost Classifier trained on a unified, time-aligned feature matrix, utilizing cost-sensitive learning to handle class imbalance.
+5.  **[COMPLETED] Explainability:** Extracted Shapley values to visualize the directional impact of macro-features on default probability.
+6.  **[CURRENT] Interactive UI:** Wrap the serialized model and SHAP explainers into a Streamlit application for stakeholder interaction.
+
+## Future Expansions
+* **Unsupervised Macro Clustering:** Apply K-Means clustering to the macroeconomic feature matrix to mathematically define discrete "Economic Regimes" (e.g., Expansion, Contraction, Stagflation) as standalone categorical features.
 3. **Career Pivot Integration:** Continuously evaluate how architectural decisions map to my "Flattened Executive" resume strategy and IC quant risk positioning.
 
 ## Executive Pitch (For README/Whitepaper)

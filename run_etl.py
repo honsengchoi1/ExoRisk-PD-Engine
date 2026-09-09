@@ -31,19 +31,23 @@ def run_script(script_path: str) -> None:
 def run_qa_check() -> None:
     """Performs a final validation check on the ML-ready dataset."""
     logger.info("=== Initiating Final Data QA Sanity Check ===")
-    processed_path = Path("data/processed/macro_sector_features.csv.gz")
+    
+    # DYNAMIC PATH RESOLUTION: Calculates the root regardless of where the script is run from
+    project_root = Path(__file__).resolve().parent
+    processed_path = project_root / "data" / "processed" / "macro_sector_lookup.parquet"
     
     if not processed_path.exists():
         logger.error(f"QA Failed: Could not find target file at {processed_path}")
         sys.exit(1)
         
-    logger.info(f"Loading finalized dataset from {processed_path} (This takes ~20 seconds)...")
-    df = pd.read_csv(processed_path, compression='gzip')
+    logger.info(f"Loading finalized lookup table from {processed_path} for QA reporting...")
+    # UPDATED: Reading the new lightning-fast Parquet format
+    df = pd.read_parquet(processed_path)
     
     print("\n" + "="*60)
-    print("               FINAL DATASET QA REPORT")
+    print("              FINAL DATASET QA REPORT")
     print("="*60)
-    print(f"Total Borrowers (Rows): {df.shape[0]:,}")
+    print(f"Total Mapped Borrowers (Rows): {df.shape[0]:,}")
     print(f"Total Features (Cols):  {df.shape[1]}")
     
     print("\n--- Missing Values (%) ---")
@@ -55,7 +59,7 @@ def run_qa_check() -> None:
     print(df.sample(5).to_string())
     print("="*60 + "\n")
     
-    logger.info("QA Check Passed. Data is 100% structurally sound and ready for XGBoost.")
+    logger.info("QA Check Passed. Dimensional data is structurally sound and ready for aggregation.")
 
 def main() -> None:
     logger.info("Initiating Master ETL Pipeline...")
