@@ -3,17 +3,21 @@ ExoRisk_PD_Engine: Phase 4b - XGBoost Training & Validation Hub
 Author: Hon Seng Choi, Principal Quantitative Architect
 Context: Ingests macro-sensitized design matrices, calculates algorithmic class weights, 
          trains XGBoost PD engine, and evaluates Out-of-Time (OOT) generalization.
-Output: Serialized XGBoost Model (JSON) and Enterprise Risk Telemetry.
+Output: Serialized XGBoost Model (JSON), Enterprise Risk Telemetry, and MRM Exhibits.
 """
 
 import logging
 import sys
-from pathlib import Path
 import time
+import json
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
 import xgboost as xgb
+import shap
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss
 
 # Configure Executive Telemetry Logging
@@ -34,9 +38,11 @@ def main() -> None:
     project_root = get_project_root()
     data_dir = project_root / "data" / "processed" / "model_matrices"
     models_dir = project_root / "models"
+    reports_dir = project_root / "reports"
     
+    # Ensure directories exist
     models_dir.mkdir(parents=True, exist_ok=True)
-    model_out_path = models_dir / "pd_engine_v1.json"
+    reports_dir.mkdir(parents=True, exist_ok=True)
 
     # 2. Ingesting Design Matrices
     logger.info("Loading Parquet design matrices into memory...")
@@ -82,8 +88,13 @@ def main() -> None:
 
     # 6. Out-Of-Time (OOT) Validation
     logger.info("Generating Probability of Default (PD) predictions for OOT cohort...")
-    # predict_proba returns a 2D array [Prob(0), Prob(1)]. We slice [:, 1] to get PD.
-    y_pred_proba = clf.predict_proba(X_test)[:, 1]
+    
+    # Raw probability under cost-sensitive weighting
+    y_pred_raw = clf.predict_proba(X_test)[:, 1]
+
+    # Analytic Bayesian calibration: correct log-odds bias introduced by scale_pos_weight
+    logger.info("Applying closed-form Bayesian probability calibration...")
+    y_pred_proba = y_pred_raw / (y_pred_raw + pos_weight * (1.0 - y_pred_raw))
 
     # Calculate Enterprise Risk Metrics
     roc_auc = roc_auc_score(y_test, y_pred_proba)
@@ -98,12 +109,39 @@ def main() -> None:
     print(f"Brier Score (Calibration):     {brier:.4f}")
     print("="*60 + "\n")
 
-    # 7. Serialization
-    logger.info(f"Serializing trained engine to {model_out_path}...")
-    clf.save_model(model_out_path)
+   # --- 7. Model Risk Governance Exhibits & Serialization ---
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    import json
 
-    exec_time = time.perf_counter() - start_time
-    logger.info(f"Phase 4b Complete. Total execution time: {exec_time:.2f} seconds.")
+    reports_dir = project_root / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+
+    # A. Calibration Distribution Exhibit
+    logger.info("Exporting Calibration Distribution Exhibit to reports/...")
+    plt.figure(figsize=(10, 5))
+    sns.histplot(y_pred_raw, color='red', label='Raw PD (Inflated by pos_weight)', kde=True, stat='density', alpha=0.5)
+    sns.histplot(y_pred_proba, color='blue', label='Calibrated PD (Bayesian)', kde=True, stat='density', alpha=0.5)
+    plt.title('ExoRisk: Pre- vs. Post-Calibration Probability Distribution', fontweight='bold')
+    plt.xlabel('Probability of Default (PD)')
+    plt.ylabel('Density')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(reports_dir / "calibration_plot.png", dpi=300)
+    plt.close()
+
+    # C. Engine & Metadata Serialization
+    model_path = models_dir / "pd_engine_v1.json"
+    logger.info(f"Serializing trained engine to {model_path}...")
+    clf.save_model(model_path)
+    
+    meta_path = models_dir / "model_meta.json"
+    with open(meta_path, "w") as f:
+        json.dump({"scale_pos_weight": float(pos_weight)}, f)
+    logger.info(f"Serialized dynamic model metadata to {meta_path}...")
+
+    end_time = time.perf_counter()
+    logger.info(f"Phase 4b Complete. Total execution time: {end_time - start_time:.2f} seconds.")
 
 if __name__ == "__main__":
     main()

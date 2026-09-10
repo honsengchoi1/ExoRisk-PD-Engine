@@ -9,6 +9,7 @@ import streamlit as st
 import pandas as pd
 import xgboost as xgb
 from pathlib import Path
+import json
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="ExoRisk Engine", page_icon="🏦", layout="wide")
@@ -35,7 +36,6 @@ def load_system():
     model.load_model(model_path)
     
     # Load data and create a template using the Portfolio Median
-    # Median is used instead of Mean to prevent extreme outliers from skewing the baseline
     df_raw = pd.read_parquet(matrix_path)
     template = pd.DataFrame([df_raw.median()])
         
@@ -43,11 +43,32 @@ def load_system():
 
 model, df_template = load_system()
 
+# --- HIGH-PRECISION ENGINEERING CALLBACK LAYER ---
+# Initialize default session states
+default_states = {
+    "loan_amnt_val": 15000,
+    "int_rate_val": 12.0,
+    "home_ownership_val": "MORTGAGE",
+    "term_val": 36,
+    "annual_inc_val": 65000,
+    "dti_val": 18.0,
+    "fico_val": 720,
+    "macro_sector_val": "Finance",
+    "treasury_yield_val": 2.5
+}
+
+for key, value in default_states.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
+
+def trigger_param_reset():
+    for key, value in default_states.items():
+        st.session_state[key] = value
+
 # --- TOP LEVEL INFERENCE DISPLAY (OPTIMIZED HUD) ---
 header_left, header_right = st.columns([2.5, 1])
 
 with header_left:
-    # Centering the subtitle directly under the main title using HTML
     st.markdown("""
         <div style='text-align: center;'>
             <h2 style='margin-bottom: 0px;'>🏦 EXORISK INSTITUTIONAL PRICING ENGINE</h2>
@@ -58,57 +79,58 @@ with header_left:
     """, unsafe_allow_html=True)
 
 with header_right:
-    # Live metric placeholder
     metric_placeholder = st.empty()
 
 st.markdown("---")
 
 # --- MASTER UI LAYOUT: SIDE-BY-SIDE ---
-# We split the screen: 70% for Micro, 30% for Macro to eliminate scrolling
 master_micro, master_macro = st.columns([2.2, 1])
 
 with master_micro:
     st.subheader("Micro: Idiosyncratic Borrower Profile")
     
-    # Sub-divide the Micro section into a tight 2-column grid
     col_m1, col_m2 = st.columns(2)
     
     with col_m1:
-        loan_amnt = st.slider("Loan Amount ($)", 1000, 40000, 15000, step=500)
-        int_rate = st.slider("Target Interest Rate (%)", 5.0, 36.0, 12.0, step=0.1)
-        home_ownership = st.selectbox("Home Ownership", ["MORTGAGE", "RENT", "OWN"])
-        term = st.radio("Loan Term (Months)", [36, 60], horizontal=True)
+        loan_amnt = st.slider("Loan Amount ($)", 1000, 40000, key="loan_amnt_val", step=500)
+        int_rate = st.slider("Target Interest Rate (%)", 5.0, 36.0, key="int_rate_val", step=0.1)
+        home_ownership = st.selectbox("Home Ownership", ["MORTGAGE", "RENT", "OWN"], key="home_ownership_val")
+        term = st.radio("Loan Term (Months)", [36, 60], key="term_val", horizontal=True)
 
     with col_m2:
-        annual_inc = st.number_input("Annual Income ($)", min_value=10000, max_value=500000, value=65000, step=5000)
-        dti = st.slider("Debt-to-Income Ratio (DTI)", 1.0, 40.0, 18.0, step=0.5)
-        fico = st.slider("FICO Score (Low)", 660, 850, 720, step=5)
+        annual_inc = st.number_input("Annual Income ($)", min_value=10000, max_value=500000, key="annual_inc_val", step=5000)
+        dti = st.slider("Debt-to-Income Ratio (DTI)", 1.0, 40.0, key="dti_val", step=0.5)
+        fico = st.slider("FICO Score (Low)", 660, 850, key="fico_val", step=5)
         macro_sector = st.selectbox("Employment Sector", [
-        "Finance",               # Moved to the top so it defaults automatically
-        "Technology", 
-        "Logistics_Transport", 
-        "Engineering_Science", 
-        "Healthcare", 
-        "Construction_Trades",
-        "Retail_Hospitality", 
-        "Manufacturing", 
-        "Education", 
-        "Government_Public_Sector",
-        "Real_Estate", 
-        "Energy_Mining", 
-        "Media_Entertainment", 
-        "Other"
-    ])
+            "Finance", 
+            "Technology", 
+            "Logistics_Transport", 
+            "Engineering_Science", 
+            "Healthcare", 
+            "Construction_Trades",
+            "Retail_Hospitality", 
+            "Manufacturing", 
+            "Education", 
+            "Government_Public_Sector",
+            "Real_Estate", 
+            "Energy_Mining", 
+            "Media_Entertainment", 
+            "Other"
+        ], key="macro_sector_val")
 
 with master_macro:
     st.subheader("Macro: Economic Regime")
     st.info("Systemic risk adjustment based strictly on the Federal Reserve cost of capital at the time of origination.")
-    treasury_yield = st.slider("Treasury 2Y Yield (%)", 0.0, 6.0, 2.5, step=0.1)
+    treasury_yield = st.slider("Treasury 2Y Yield (%)", 0.0, 6.0, key="treasury_yield_val", step=0.1)
+    
+    # --- FULL-WIDTH RESET BUTTON WITH CALLBACK ---
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.button("🔄 Reset Sliders", on_click=trigger_param_reset, use_container_width=True)
 
 # --- REAL-TIME PREDICTION LOGIC ---
 X_pred = df_template.copy()
 
-# Map inputs
+# Map inputs from session state variables
 X_pred['loan_amnt'] = loan_amnt
 X_pred['term'] = term
 X_pred['int_rate'] = int_rate
@@ -122,8 +144,20 @@ if f"home_ownership_{home_ownership}" in X_pred.columns:
 if f"macro_sector_{macro_sector}" in X_pred.columns:
     X_pred[f"macro_sector_{macro_sector}"] = 1.0
     
-# Inference
-pd_score = model.predict_proba(X_pred)[0][1]
+# --- INFERENCE & CALIBRATION ---
+pd_raw = model.predict_proba(X_pred)[0][1]
+
+try:
+    meta_path = Path(__file__).resolve().parent / "models" / "model_meta.json"
+    with open(meta_path, "r") as f:
+        metadata = json.load(f)
+    dynamic_weight = float(metadata['scale_pos_weight'])
+except (FileNotFoundError, KeyError):
+    st.error("🚨 CRITICAL MRM HALT: 'model_meta.json' metadata missing. Inference halted to prevent uncalibrated pricing.")
+    st.stop()
+
+# Real-time institutional calibration (Bayesian correction)
+pd_score = pd_raw / (pd_raw + dynamic_weight * (1.0 - pd_raw))
 
 # --- UPDATE TOP METRIC ---
 if pd_score < 0.15:
