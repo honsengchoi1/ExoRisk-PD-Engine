@@ -27,18 +27,19 @@ st.markdown("""
 # --- MLOPS: CACHE ENGINE & MATRIX SCHEMA ---
 @st.cache_resource
 def load_system():
-    project_root = Path(__file__).resolve().parent
-    model_path = project_root / "models" / "pd_engine_v1.json"
-    matrix_path = project_root / "data" / "processed" / "model_matrices" / "X_train.parquet"
-    
-    # Load XGBoost Engine
+    # 1. Load the core XGBoost model
     model = xgb.XGBClassifier()
+    model_path = Path("models/pd_engine_v1.json")
     model.load_model(model_path)
     
-    # Load data and create a template using the Portfolio Median
-    df_raw = pd.read_parquet(matrix_path)
-    template = pd.DataFrame([df_raw.median()])
+    # 2. Load the lightweight pre-calculated median baseline
+    median_path = Path("models/portfolio_median.json")
+    import json
+    with open(median_path, "r") as f:
+        median_dict = json.load(f)
         
+    template = pd.DataFrame([median_dict])
+    
     return model, template
 
 model, df_template = load_system()
