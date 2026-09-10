@@ -3,13 +3,13 @@
 ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
 ![XGBoost](https://img.shields.io/badge/XGBoost-Optimized-orange.svg)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Deployed-FF4B4B.svg)
-![Status](https://img.shields.io/badge/Status-Production_Ready-success.svg)
+![Status](https://img.shields.io/badge/Status-Staging_%2F_UAT-blue.svg)
 
 **Architect:** Hon Seng Choi | Principal Quantitative Architect  
 **Target Scope:** Institutional Consumer Credit Portfolio (1.1M+ Records)  
 **Core Infrastructure:** Python, XGBoost, Parquet, SHAP, Streamlit  
 
-👉 **[View the Cloud-Deployed Interactive HUD (Streamlit App)](Insert_Your_Streamlit_URL_Here)**  
+👉 **[View the Live Interactive HUD (Streamlit Cloud)](https://exorisk-credit-pricing-engine.streamlit.app/)**
 *(Quantitative Head-Up Display | Production-Ready Beta)*
 
 ## 📌 Executive Summary

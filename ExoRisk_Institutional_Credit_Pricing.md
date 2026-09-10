@@ -2,8 +2,8 @@
 
 **Architect:** Hon Seng Choi | Principal Quantitative Architect
 **Domain:** Macroeconomic Stress-Testing & Predictive Underwriting
-**Live Demo:** [Insert Streamlit Link Here]
-**GitHub Repository:** [Insert GitHub Link Here]
+* **Live Production Engine:** [https://exorisk-credit-pricing-engine.streamlit.app/](https://exorisk-credit-pricing-engine.streamlit.app/)
+* **Repository & Architecture:** [https://github.com/honsengchoi1/ExoRisk-PD-Engine](https://github.com/honsengchoi1/ExoRisk-PD-Engine)
 
 ---
 
