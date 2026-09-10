@@ -3,11 +3,6 @@
 **Project:** ExoRisk Codebase: Phase 6 Final Deployment
 **Phase:** 6.0 - Production Launch, Bayesian Calibration & MRM Governance [COMPLETED]
 
-## ⚠️ Permanent Executive Directives
-1. **Verification-First Workflow:** Always brainstorm, discuss, teach, learn, confirm, and proceed.
-2. **Zero Unauthorized Execution:** Do NOT generate code until explicitly requested by the user.
-3. **Career Pivot Integration:** Continuously evaluate how architectural decisions map to my "Flattened Executive" resume strategy and IC quantitative risk positioning.
-
 ## Executive Overview
 ExoRisk is an end-to-end XGBoost predictive underwriting pipeline designed to dynamically price consumer credit risk. By normalizing asynchronous macroeconomic indicators (Treasury Yields, Sector Job Momentum) into a multi-index Parquet panel and merging it with micro-level borrower data, the machine learning engine calculates a highly calibrated Probability of Default (PD). 
 
