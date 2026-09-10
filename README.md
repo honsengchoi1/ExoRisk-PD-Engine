@@ -70,6 +70,8 @@ The repository features a fully idempotent pipeline, transitioning raw tabular d
  │                                                                                  │
  └──────────────────────────────────────────────────────────────────────────────────┘
 
+```
+
 ## 🖥️ Live Dashboard & Deployment
 The UI is built as a highly optimized, interactive terminal. Users can adjust macroeconomic regimes and micro-borrower profiles to witness real-time Probability of Default (PD) recalibrations.
 
