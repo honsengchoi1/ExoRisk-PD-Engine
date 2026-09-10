@@ -80,11 +80,12 @@ To spin up the ExoRisk Quantitative HUD on your local machine:
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/honsengchoi1/ExoRisk-PD-Engine.git](https://github.com/honsengchoi1/ExoRisk-PD-Engine.git)
+git clone https://github.com/honsengchoi1/ExoRisk-PD-Engine.git
 
 # 2. Install dependencies
 pip install -r requirements.txt
 
 # 3. Launch the Quantitative Engine
 streamlit run underwriting_engine_ui.py
+
 
