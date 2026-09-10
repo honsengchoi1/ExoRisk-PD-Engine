@@ -1,17 +1,21 @@
-# Environments
+# === Environments & Cache ===
 exorisk_env/
 .venv/
 __pycache__/
+*.pyc
 
-# Data 
+# === Data (Prevent massive payload pushes) ===
 data/raw/
 data/interim/
 data/processed/
 
-# Jupyter
+# === Jupyter ===
 .ipynb_checkpoints/
+notebooks/archive/
 
+# === Local Dev Tools & State ===
 project_state.md
-
 path_scanner_v1.py
-notebooks/
+
+# === Local Text Drafts ===
+LinkedIn Post.txt
