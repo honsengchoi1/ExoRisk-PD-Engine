@@ -137,6 +137,11 @@ def main() -> None:
     X_train = train_df.drop(columns=drop_cols)
     X_test = test_df.drop(columns=drop_cols)
 
+    # Align feature nomenclature to prevent semantic overlap with macro vectors
+    logger.info("Renaming macro_sector to sector for semantic clarity...")
+    X_train = X_train.rename(columns={'macro_sector': 'sector'})
+    X_test = X_test.rename(columns={'macro_sector': 'sector'})
+
     logger.info("One-Hot Encoding categorical features...")
     X_train = pd.get_dummies(X_train, drop_first=True)
     X_test = pd.get_dummies(X_test, drop_first=True)

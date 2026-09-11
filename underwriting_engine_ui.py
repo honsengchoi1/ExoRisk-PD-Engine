@@ -102,7 +102,7 @@ with master_micro:
         annual_inc = st.number_input("Annual Income ($)", min_value=10000, max_value=500000, key="annual_inc_val", step=5000)
         dti = st.slider("Debt-to-Income Ratio (DTI)", 1.0, 40.0, key="dti_val", step=0.5)
         fico = st.slider("FICO Score (Low)", 660, 850, key="fico_val", step=5)
-        macro_sector = st.selectbox("Employment Sector", [
+        sector = st.selectbox("Employment Sector", [
             "Finance", 
             "Technology", 
             "Logistics_Transport", 
@@ -117,7 +117,7 @@ with master_micro:
             "Energy_Mining", 
             "Media_Entertainment", 
             "Other"
-        ], key="macro_sector_val")
+        ], key="sector_val")
 
 with master_macro:
     st.subheader("Macro: Economic Regime")
@@ -142,8 +142,8 @@ X_pred['Treasury_2Y_Yield'] = treasury_yield
 
 if f"home_ownership_{home_ownership}" in X_pred.columns:
     X_pred[f"home_ownership_{home_ownership}"] = 1.0
-if f"macro_sector_{macro_sector}" in X_pred.columns:
-    X_pred[f"macro_sector_{macro_sector}"] = 1.0
+if f"sector_{sector}" in X_pred.columns:
+    X_pred[f"sector_{sector}"] = 1.0
     
 # --- INFERENCE & CALIBRATION ---
 pd_raw = model.predict_proba(X_pred)[0][1]

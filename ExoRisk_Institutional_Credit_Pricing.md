@@ -2,38 +2,48 @@
 
 **Architect:** Hon Seng Choi | Principal Quantitative Architect
 **Domain:** Macroeconomic Stress-Testing & Predictive Underwriting
+
 * **Live Production Engine:** [https://exorisk-credit-pricing-engine.streamlit.app/](https://exorisk-credit-pricing-engine.streamlit.app/)
 * **Repository & Architecture:** [https://github.com/honsengchoi1/ExoRisk-PD-Engine](https://github.com/honsengchoi1/ExoRisk-PD-Engine)
 
 ---
 
-## 1. The Macroeconomic Thesis: The August NFP Divergence
+## 1. The Macroeconomic Thesis: The Trajectory vs. Snapshot Problem
 Traditional consumer credit models rely heavily on idiosyncratic micro-features (FICO, DTI, Income). However, this static approach creates a massive blind spot during economic regime shifts. 
 
-The August Nonfarm Payrolls (NFP) report exposed a severe divergence in the labor market: while Government and Healthcare sectors added jobs, the Information and Technology sectors experienced distinct contractions. A static underwriting model treats a $100k-earning Tech worker and a $100k-earning Healthcare worker as identical risks. **ExoRisk** was engineered to mathematically separate them.
+The August 2026 Nonfarm Payrolls (NFP) report exposed a severe divergence in the labor market: while Government and Healthcare sectors added jobs, the Information and Technology sectors experienced distinct contractions. A static underwriting model treats a $100k-earning Tech worker and a $100k-earning Healthcare worker as identical risks. **ExoRisk was engineered to mathematically separate them.**
 
-By merging macroeconomic regime data with micro-level borrower tapes, ExoRisk calculates a dynamic Probability of Default (PD) that adjusts based on the exact economic environment at the moment of origination.
+**The Day-1 Pricing Constraint:** A critical challenge in predictive underwriting is the time delay between these macroeconomic shifts and actual loan defaults. An underwriter cannot wait six months to see if a borrower actually loses their job; risk must be priced accurately on Day 1. To solve this, ExoRisk does not rely on static monthly job counts. Instead, the pipeline computes **1-month, 3-month, and 6-month rolling NFP momentum vectors** for 14 distinct employment sectors. 
+
+By merging this historical macroeconomic trajectory with micro-level borrower tapes, the XGBoost engine learns to use sector momentum as a leading indicator of future failure, dynamically adjusting the Probability of Default (PD) based on the exact economic environment at the moment of origination.
+
+*(Exhibit 1: August 2026 NFP Sector Divergence)*
+![August NFP Sector Changes](docs/changes-in-employment-to.png)
+*(Source: U.S. Bureau of Labor Statistics)*
 
 ## 2. Architectural Anchor: The 2-Year Treasury Yield
 Attempting to feed an ML engine dozens of independent macroeconomic indicators (CPI, GDP, Unemployment) introduces severe multi-collinearity and variance inflation. 
 
-To ensure robust signal extraction, ExoRisk utilizes the **2-Year US Treasury Yield** as its singular systemic macro proxy. The 2-Year Yield inherently prices in Federal Reserve monetary policy, forward inflation expectations, and systemic liquidity. By holding the broader macro environment constant via the 2-Year Yield, the XGBoost engine is freed to isolate and price the pure idiosyncratic risk of specific employment sectors.
+To ensure robust signal extraction, ExoRisk utilizes the **2-Year US Treasury Yield** as its singular, seismic macro proxy. Because the 2-Year note natively prices in the Federal Reserve rate path, oil shocks, geopolitical events, and major equity market variations, it acts as the ultimate aggregator of global macroeconomic risk. 
 
-*(Exhibit 1: Macro ETL Architecture - Demonstrating the vectorized multi-index parquet assembly).*
+By holding this systemic monetary noise constant via the 2-Year Yield, the gradient-boosted engine is freed to isolate and price the pure, idiosyncratic delta risk of specific employment sectors.
+
+*(Exhibit 2: Macro ETL Architecture - Demonstrating the vectorized multi-index parquet assembly)*
 ![Macro Architecture](docs/01_macro_etl_architecture.png)
 
 ## 3. Algorithmic Explainability & SHAP Discoveries
 To satisfy SR 11-7 Model Risk Management (MRM) requirements, the black-box gradient boosting architecture was audited using Shapley Additive Explanations (TreeSHAP). The results validated the core macroeconomic thesis and revealed several latent credit dynamics.
 
 **Key SHAP Findings:**
-1.  **The Dominance of the Cost of Capital:** The 2-Year Treasury Yield emerged as the #2 most impactful feature globally, second only to the specific loan interest rate. 
-2.  **Sector Delta Isolation:** Without being explicitly instructed, the model extracted the inherent stability of W-2 wage earners versus high-variance 1099 profiles. 
-    *   *Risk Suppressors:* `Technology` and `Finance` sectors consistently generated negative SHAP values, acting as structural credit buffers.
-    *   *Risk Amplifiers:* `Logistics`, `Retail`, and `Hospitality` generated positive SHAP values, driving default probabilities upward.
-3.  **The Homeownership Credit Paradox:** The model autonomously identified a classic consumer credit reality: borrowers who own their homes outright (`OWN`) carry a statistically higher default probability than those with a `MORTGAGE`. While counter-intuitive to traditional scoring, a borrower who owns a home free-and-clear but requires a high-interest unsecured personal loan is often cash-poor (e.g., retirees on fixed incomes or those with inherited property but zero liquidity). Conversely, active mortgage holders have been recently vetted by Tier-1 banks, proving stable DTI and cash flow.
+1.  **The Baseline vs. Marginal Adjustment:** The SHAP hierarchy confirms that idiosyncratic micro-factors (Interest Rate, FICO, Loan Amount) correctly establish the global baseline risk. The NFP sector deltas sit lower in the hierarchy because the engine accurately learned they act as **marginal adjustments**—fine-tuning and shifting the baseline probability strictly during economic regime changes.
+2.  **The Dominance of the Cost of Capital:** The 2-Year Treasury Yield emerged as the #2 most impactful feature globally, proving its efficacy as a systemic anchor. 
+3.  **Micro-Sector Risk Stratification:** Without explicit instruction, the model utilized the borrower's static employment industry to extract the inherent baseline stability of W-2 wage earners versus high-variance profiles. 
+    *   *Risk Suppressors:* `Technology` and `Finance` borrower profiles consistently generated negative SHAP values, pushing probabilities leftward and acting as structural credit buffers.
+    *   *Risk Amplifiers:* `Logistics`, `Retail`, and `Hospitality` borrower profiles generated positive SHAP values, driving default probabilities upward inherently.
+4.  **The Homeownership Credit Paradox:** The model autonomously identified that borrowers who own their homes outright (`OWN`) carry a statistically higher default probability than those with a `MORTGAGE`. While counter-intuitive, a borrower who owns a home free-and-clear but requires a high-interest unsecured loan is often cash-poor (e.g., fixed incomes or zero liquidity). Conversely, active mortgage holders possess recently vetted, stable cash flows.
 
-*(Exhibit 2: SHAP Summary Plot - Visualizing the global feature hierarchy and directional sector impact).*
-![SHAP Summary](reports/shap_summary_plot.png)
+*(Exhibit 3: SHAP Summary Plot - Visualizing the global feature hierarchy and directional sector impact)*
+![SHAP Summary Plot](reports/shap_summary_plot.jpg)
 
 ## 4. Production Calibration & The Asymmetry Problem
 In unsecured consumer lending, terminal outcomes are inherently skewed: roughly 80% of borrowers repay their loans, while approximately 20% default. 
@@ -50,5 +60,5 @@ $$P_{\text{calibrated}} = \frac{P_{\text{raw}}}{P_{\text{raw}} + w(1 - P_{\text{
 
 This transformation maintained the model's elite ranking power while compressing the Brier Score from an inflated 0.2477 down to an optimized **0.1538**, ensuring the Streamlit HUD outputs true, real-world portfolio probabilities.
 
-*(Exhibit 3: Pre- vs. Post-Calibration Distribution).*
+*(Exhibit 4: Pre- vs. Post-Calibration Distribution)*
 ![Calibration Shift](reports/calibration_plot.png)

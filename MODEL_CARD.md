@@ -4,7 +4,7 @@
 *   **Primary Objective:** To quantify "Sector Delta Risk" by mapping macroeconomic labor shifts to consumer credit default rates. The model was specifically architected to stress-test sector divergences, such as the August Nonfarm Payrolls (NFP) report demonstrating job expansions in Government and Healthcare alongside contractions in the Information sector.
 *   **Macro Anchor Proxy:** Instead of introducing excessive noise through dozens of collinear macroeconomic variables, the engine utilizes the 2-Year US Treasury Yield (`Treasury_2Y_Yield`) as a singular, efficient proxy. The 2-Year yield natively prices in systemic monetary conditions, inflation expectations, and economic sentiment, holding the broader macro environment constant to isolate sector-specific idiosyncratic risk.
 *   **Validation Cohort Strategy:** The engine enforces a strict Out-of-Time (OOT) temporal split to evaluate forward-looking predictive stability and prevent temporal data leakage:
-    *   **In-Time Development Matrix (Train):** 2007-01-01 to 2016-12-31 ($N = 1,119,699$ terminal loans)
+    *   **In-Time Development Matrix (Train):** 2007-01-01 to 2016-12-31 (1,119,699 terminal loans)
     *   **Out-of-Time Stress Matrix (Test):** 2017-01-01 to 2018-12-31
 
 ---
@@ -48,9 +48,9 @@ To satisfy regulatory transparency requirements regarding black-box models, loca
 *   **Dominant Macro Proxy:** `Treasury_2Y_Yield` established itself as the **#2 most impactful feature** in the global architecture, surpassed only by loan interest rate (`int_rate`). High 2-Year Treasury yields exert a strong positive SHAP impact, directly elevating predicted PD across borrower grades.
 *   **Core Micro Governance:** Traditional underwriting variables (`term`, `fico_range_low`, `dti`, `loan_amnt`) preserve expected monotonic relationships: higher FICO and income compress default odds, while extended terms (60-Month) increase baseline risk.
 
-### B. Sector Delta Risk Attribution
-*   **Risk-Suppressing Sectors:** `macro_sector_Technology` and `macro_sector_Finance` consistently produced negative SHAP values, dampening default probability and serving as structural credit buffers.
-*   **Risk-Amplifying Sectors:** `macro_sector_Logistics_Transport` and `macro_sector_Hospitality_Food` produced positive SHAP values, driving default risk upward.
+### B. Micro-Sector Risk Stratification
+*   **Risk-Suppressing Sectors:** `sector_Technology` and `sector_Finance` consistently produced negative SHAP values, dampening default probability and serving as structural credit buffers.
+*   **Risk-Amplifying Sectors:** `sector_Logistics_Transport` and `sector_Hospitality_Food` produced positive SHAP values, driving default risk upward.
 *   **Latent Contract Extraction:** The engine autonomously mapped empirical risk divergences between stable salaried earners (Healthcare, Education, Government) and volatile wage/variable-income profiles without explicit employment-type labeling.
 
 ### C. Architectural Separation of Concerns

@@ -13,11 +13,13 @@
 *(Quantitative Head-Up Display | Production-Ready Beta)*
 
 ## 📌 Executive Summary
-Traditional consumer credit models evaluate borrower risk (FICO, Income) in a vacuum, often presenting an opportunity for broader macroeconomic integration. A borrower with a 750 FICO and a $150k income presents a vastly different risk profile in a 5% yield environment compared to a 1% environment—especially when accounting for the volatility of their specific employment sector.
+The primary objective of **ExoRisk** is to isolate and study Sector Delta Risk—quantifying exactly how macroeconomic labor shifts impact consumer credit default rates. Traditional consumer credit models evaluate borrower risk (FICO, Income) in a vacuum, often failing to detect when the structural ground is shifting beneath a borrower's specific industry.
 
-**ExoRisk** is an end-to-end machine learning architecture built specifically to isolate and study this "Sector Delta Risk." By utilizing the **2-Year US Treasury Yield** as a macroeconomic anchor to hold systemic monetary conditions constant, the gradient-boosted engine can accurately measure how default rates diverge across different employment sectors. This allows the system to dynamically price consumer credit based on idiosyncratic borrower fundamentals, sector-specific resilience, and the real-time institutional cost of capital.
+A critical challenge in predictive underwriting is the time delay between macroeconomic shifts and actual loan defaults. You cannot wait six months to see if a borrower loses their job; risk must be priced accurately on Day 1. To solve this, the ExoRisk pipeline does not rely on static job counts. Instead, it engineers 1-month, 3-month, and 6-month rolling **Nonfarm Payroll (NFP) momentum vectors** for 14 distinct employment sectors. By chronologically merging this macroeconomic trajectory with 1.1M+ micro-level borrower records, the gradient-boosted engine learns to use sector momentum as a leading indicator of future failure.
 
-To deploy this engine safely to a live institutional underwriting desk, a **closed-form Bayesian calibration layer** was mathematically injected into the pipeline. This corrects the log-odds margin inflation caused by cost-sensitive training, compressing the Brier Score down to **0.1538** while maintaining an elite global ranking power (0.7049 ROC-AUC).
+To isolate this specific sector delta, the architecture utilizes the **2-Year US Treasury Yield** as a seismic anchor to hold all systemic conditions constant. Because the 2-Year note natively prices in the Fed rate path, oil shocks, geopolitical events, and major equity market variations, it absorbs the broader macro noise. This frees the gradient-boosted engine to accurately measure how default rates diverge strictly across different employment sectors. Ultimately, this allows the system to dynamically price consumer credit based on idiosyncratic borrower fundamentals, sector-specific resilience, and the real-time institutional cost of capital.
+
+To deploy this engine safely to a live institutional underwriting desk, **a closed-form Bayesian calibration layer** was mathematically injected into the pipeline. This corrects the log-odds margin inflation caused by cost-sensitive training, compressing the Brier Score down to **0.1538** while maintaining an elite global ranking power (0.7049 ROC-AUC).
 
 ## 📖 Deep Dives & Core Documentation
 For a comprehensive breakdown of the macroeconomic thesis, the algorithmic math, and the latent credit anomalies discovered during SHAP analysis, please refer to the core documentation:
@@ -47,7 +49,7 @@ The repository features a fully idempotent pipeline, transitioning raw tabular d
  │                                                                                  │
  │  [ MACRO REGIME LAYER ]                   [ MICRO BORROWER LAYER ]               │
  │  ├── FRED API: 2Y Treasury Yield          ├── 1.1M+ LendingClub Records          │
- │  └── Monetary Policy Proxy Signals        └── Debt, FICO, Income, DTI Attributes │
+ │  └── NFP Sector Job Deltas (1M/3M/6M)     └── FICO, Income, DTI, Job Sector      │
  │                    │                                        │                    │
  │                    └──────────────────┬─────────────────────┘                    │
  │                                       ▼                                          │
