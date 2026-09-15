@@ -25,7 +25,7 @@ Evaluated strictly against unseen 2017–2018 loan originations:
 ### A. Cost-Sensitive Class Balancing
 To mitigate an empirical class imbalance ratio of **4.08 : 1** without introducing synthetic sampling artifacts (e.g., SMOTE distortion), the engine injects a native cost-sensitive multiplier into the gradient computation:
 
-$$scale\_pos\_weight = \frac{N_{\text{negative}}}{N_{\text{positive}}} = 4.08$$
+$$\text{scale\_pos\_weight} = \frac{N_{\text{negative}}}{N_{\text{positive}}} = 4.08$$
 
 This scales the loss gradient for minority default instances ($y = 1$), ensuring the tree splits prioritize default discrimination over majority class accuracy.
 

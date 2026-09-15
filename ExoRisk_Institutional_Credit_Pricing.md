@@ -17,19 +17,18 @@ The August 2026 Nonfarm Payrolls (NFP) report exposed a severe divergence in the
 
 By merging this historical macroeconomic trajectory with micro-level borrower tapes, the XGBoost engine learns to use sector momentum as a leading indicator of future failure, dynamically adjusting the Probability of Default (PD) based on the exact economic environment at the moment of origination.
 
-*(Exhibit 1: August 2026 NFP Sector Divergence)*
-![August NFP Sector Changes](docs/changes-in-employment-to.png)
-*(Source: U.S. Bureau of Labor Statistics)*
+![August NFP Sector Changes](docs/02_changes_in_employment.png)
+<p align="center"><i>Exhibit 1: August 2026 NFP Sector Divergence (Source: U.S. Bureau of Labor Statistics)</i></p>
 
 ## 2. Architectural Anchor: The 2-Year Treasury Yield
-Attempting to feed an ML engine dozens of independent macroeconomic indicators (CPI, GDP, Unemployment) introduces severe multi-collinearity and variance inflation. 
+Ingesting multiple highly correlated macroeconomic indicators (such as CPI, GDP, and Unemployment) simultaneously degrades feature attribution and destabilizes SHAP interpretability.
 
-To ensure robust signal extraction, ExoRisk utilizes the **2-Year US Treasury Yield** as its singular, seismic macro proxy. Because the 2-Year note natively prices in the Federal Reserve rate path, oil shocks, geopolitical events, and major equity market variations, it acts as the ultimate aggregator of global macroeconomic risk. 
+To maintain strict SR 11-7 compliance, ExoRisk designates the 2-Year US Treasury Yield as its singular systemic macro proxy. Because the 2-Year note natively prices in federal monetary policy, geopolitical shocks, and global market volatility, it acts as an ultimate aggregator of baseline economic risk.
 
-By holding this systemic monetary noise constant via the 2-Year Yield, the gradient-boosted engine is freed to isolate and price the pure, idiosyncratic delta risk of specific employment sectors.
+By anchoring the systemic environment to this single metric, the gradient-boosted engine is freed to cleanly isolate the precise, sector-specific job momentum impacting the borrower without introducing algorithmic confusion.
 
-*(Exhibit 2: Macro ETL Architecture - Demonstrating the vectorized multi-index parquet assembly)*
 ![Macro Architecture](docs/01_macro_etl_architecture.png)
+<p align="center"><i>Exhibit 2: Macro ETL Architecture - Demonstrating the vectorized multi-index parquet assembly</i></p>
 
 ## 3. Algorithmic Explainability & SHAP Discoveries
 To satisfy SR 11-7 Model Risk Management (MRM) requirements, the black-box gradient boosting architecture was audited using Shapley Additive Explanations (TreeSHAP). The results validated the core macroeconomic thesis and revealed several latent credit dynamics.
@@ -42,8 +41,8 @@ To satisfy SR 11-7 Model Risk Management (MRM) requirements, the black-box gradi
     *   *Risk Amplifiers:* `Logistics`, `Retail`, and `Hospitality` borrower profiles generated positive SHAP values, driving default probabilities upward inherently.
 4.  **The Homeownership Credit Paradox:** The model autonomously identified that borrowers who own their homes outright (`OWN`) carry a statistically higher default probability than those with a `MORTGAGE`. While counter-intuitive, a borrower who owns a home free-and-clear but requires a high-interest unsecured loan is often cash-poor (e.g., fixed incomes or zero liquidity). Conversely, active mortgage holders possess recently vetted, stable cash flows.
 
-*(Exhibit 3: SHAP Summary Plot - Visualizing the global feature hierarchy and directional sector impact)*
-![SHAP Summary Plot](reports/shap_summary_plot.jpg)
+![SHAP Summary Plot](reports/shap_summary_plot.png)
+<p align="center"><i>Exhibit 3: SHAP Summary Plot - Visualizing the global feature hierarchy and directional sector impact</i></p>
 
 ## 4. Production Calibration & The Asymmetry Problem
 In unsecured consumer lending, terminal outcomes are inherently skewed: roughly 80% of borrowers repay their loans, while approximately 20% default. 
@@ -60,5 +59,5 @@ $$P_{\text{calibrated}} = \frac{P_{\text{raw}}}{P_{\text{raw}} + w(1 - P_{\text{
 
 This transformation maintained the model's elite ranking power while compressing the Brier Score from an inflated 0.2477 down to an optimized **0.1538**, ensuring the Streamlit HUD outputs true, real-world portfolio probabilities.
 
-*(Exhibit 4: Pre- vs. Post-Calibration Distribution)*
 ![Calibration Shift](reports/calibration_plot.png)
+<p align="center"><i>Exhibit 4: Pre- vs. Post-Calibration Distribution</i></p>
