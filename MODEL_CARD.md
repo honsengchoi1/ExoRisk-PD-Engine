@@ -23,11 +23,12 @@ Evaluated strictly against unseen 2017–2018 loan originations:
 ## 3. Algorithmic Architecture & Mathematical Governance
 
 ### A. Cost-Sensitive Class Balancing
-To mitigate an empirical class imbalance ratio of **4.08 : 1** without introducing synthetic sampling artifacts (e.g., SMOTE distortion), the engine injects a native cost-sensitive multiplier into the gradient computation:
 
-$$\mathrm{scale\_pos\_weight} = \frac{N_{\text{negative}}}{N_{\text{positive}}} = 4.08$$
+To mitigate an empirical class imbalance ratio of **4.08 : 1** without introducing synthetic sampling artifacts (e.g., SMOTE distortion), the engine injects a native cost-sensitive multiplier ($w$) into the gradient computation:
 
-This scales the loss gradient for minority default instances ($y = 1$), ensuring the tree splits prioritize default discrimination over majority class accuracy.
+$$ w = \frac{N_{\mathrm{negative}}}{N_{\mathrm{positive}}} = 4.08 $$
+
+This scales the loss gradient for minority default instances ($y = 1$), ensuring the tree splits prioritize default discrimination over majority class accuracy. This calculated weight $w$ is passed directly to the XGBoost `scale_pos_weight` hyperparameter.
 
 ### B. Closed-Form Bayesian Calibration
 While the cost-sensitive multiplier achieves high ranking power, the raw sigmoidal output ($P_{\text{raw}}$) suffers from severe log-odds margin inflation. To deploy this to a live underwriting environment, a closed-form Bayesian probability calibration layer is mathematically injected into the inference pipeline:
